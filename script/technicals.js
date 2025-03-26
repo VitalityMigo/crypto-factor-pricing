@@ -36,4 +36,66 @@ function crossCorrelation(x, y, maxLag) {
     return correlations;
 }
 
-module.exports = { movingAverage, pearsonCorrelation, crossCorrelation };
+
+/**
+ * Méthode de cotation dynamique couramment employée, dérivant des travaux de Avellaneda et Stoikov (2008).
+ * @param {number} midPrice - Le prix médian.
+ * @param {number} inventory - L'inventaire, exprimé sur la plage -100 à 100.
+ * @param {number} sigma - La volatilité annualisée sur 365 jours (σ).
+ * @param {number} gamma - Le paramètre de risque (γ), estimé par rapport à la liqudité du marché.
+ * @param {number} T - L'horizon en jours (par défaut 0.05, environ 72 minutes).
+ * @returns {object} Un objet contenant : mid, bid, ask, spread_bps, et skew_percent.
+ */
+function computeMMQuote(midPrice, inventory, sigma, gamma = 75, T = 1 / 24) {
+    // Conversion de la volatilité annualisée en volatilité quotidienne
+    const volatilityDaily = sigma / math.sqrt(365);
+    const sigmaDailySquared = math.pow(volatilityDaily, 2);
+
+    // Calcul du half-spread (spread de base)
+    const deltaBase = (gamma * sigmaDailySquared * T) / 2;
+
+    // Correction du spread minimal (0.1 bps)
+    const minimalHalfSpread = math.max(0.000005, deltaBase); // 0.1 bps minimum
+    const halfSpread = math.max(deltaBase, minimalHalfSpread);
+
+    // Skew linéaire proportionnel au spread
+    const deltaSkew = (inventory / 100) * halfSpread;
+
+    // Calcul des prix bid et ask
+    const bidPrice = midPrice * (1 - (halfSpread + deltaSkew));
+    const askPrice = midPrice * (1 + (halfSpread - deltaSkew));
+
+    // Calcul du spread total en pourcentage et conversion en bps
+    const spreadPct = 2 * halfSpread;
+    const spread_bps = spreadPct * 10000;
+
+    // Calcul du skew en pourcentage
+    const skew_percent = (inventory / 100) * 100; // 100% quand inventaire = ±100
+
+    return {
+        mid: midPrice,
+        bid: bidPrice,
+        ask: askPrice,
+        spread: askPrice - bidPrice,
+        spread_bps: spread_bps,
+        skew: skew_percent,
+        dev: (askPrice + bidPrice) / 2 
+    };
+}
+
+// === TESTS ===
+console.log("Inventaire neutre:", computeMMQuote(1000, -30, 0.5));
+
+function randomNormalValue(mean = 0, stdDev = 50) {
+    let u1 = 0, u2 = 0;
+    // Générer deux nombres aléatoires uniformes dans (0, 1)
+    while (u1 === 0) u1 = math.random();
+    while (u2 === 0) u2 = math.random();
+    // Transformation Box-Muller
+    const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+    const value = z0 * stdDev + mean;
+    // Limiter la valeur entre -100 et 100
+    return Math.max(-100, Math.min(100, value));
+}
+
+module.exports = { movingAverage, crossCorrelation, computeMMQuote, randomNormalValue };

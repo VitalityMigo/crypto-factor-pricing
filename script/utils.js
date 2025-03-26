@@ -5,7 +5,7 @@ function timestampToDate(timestamp) {
 }
 
 function hourToAnnum(value) {
-    return value * 24 * 365 
+    return value * 24 * 365
 }
 
 function parseCSV(filePath) {
@@ -22,4 +22,10 @@ function parseCSV(filePath) {
     });
 }
 
-module.exports = { timestampToDate, hourToAnnum, parseCSV };
+// Fonction pour choisir un nom unique au hasard dans la liste
+function randomName(availableNames) {
+    const index = Math.floor(Math.random() * availableNames.length);
+    return availableNames.splice(index, 1)[0]; // Retire et retourne le nom choisi
+}
+
+module.exports = { timestampToDate, hourToAnnum, parseCSV, randomName };
