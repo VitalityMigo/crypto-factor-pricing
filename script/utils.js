@@ -23,9 +23,12 @@ function parseCSV(filePath) {
 }
 
 // Fonction pour choisir un nom unique au hasard dans la liste
-function randomName(availableNames) {
-    const index = Math.floor(Math.random() * availableNames.length);
-    return availableNames.splice(index, 1)[0]; // Retire et retourne le nom choisi
+function randomName(x = 3) {
+    const list_MM = ['B2C2', 'GSR', 'Jump', 'Cumberland', 'Galaxy', 'Wintermute', 'QCP', 'Flow Traders'];
+    return [...list_MM]
+        .sort(() => Math.random() - 0.5) // Mélange aléatoire
+        .slice(0, x) // Prend les x premiers
+        .map(name => ({ name })); // Transforme en objets
 }
 
 module.exports = { timestampToDate, hourToAnnum, parseCSV, randomName };

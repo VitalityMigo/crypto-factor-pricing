@@ -2,7 +2,7 @@ const path = require('path');
 const math = require('mathjs');
 
 const { parseCSV, randomName } = require('../script/utils.js');
-const { crossCorrelation, compouteMMQuote, randomNormalValue } = require('../script/technicals.js');
+const { crossCorrelation, computeMMQuote, randomNormalValue } = require('../script/technicals.js');
 
 function spotFundingCorrelation() {
 
@@ -37,49 +37,42 @@ function simulateMMImpact(asset, num_market_makers) {
     const price_array = parseCSV(path.join(__dirname, `../data/spot_hourly_${asset}.csv`)).map(i => parseFloat(i.sma));
     const vol_array = parseCSV(path.join(__dirname, `../data/volatility_${asset}.csv`)).map(i => parseFloat(i.vol));
 
-    // Liste des plus grands market makers de crypto-actifs (à titre illustratif)
-    const list_MM = ['B2C2', 'GSR', 'Jump', 'Cumberland', 'Galaxy', 'Wintermute', 'QCP', 'Flow Traders'];
-
-    const marketMakers = Array.from({ length: num_market_makers }, () => ({
-        name: randomName(list_MM),
-        inventory: randomNormalValue() // Inventaire initial
-    }));
+    const marketMakers = randomName(num_market_makers)
 
     // Résultat de la simulation
     const result = [];
 
     // Parcours des prix et volatilités heure par heure
     for (let i = 0; i < price_array.length; i++) {
+
         const midPrice = price_array[i];
         const volatility = vol_array[i];
-        const hourlyQuotes = [];
+        const quotes = [];
 
         // Génération des quotes pour chaque market maker
         for (const marketMaker of marketMakers) {
-            const inventory = randomNormalValue(); // Poids d'inventaire
 
-            const quote = compouteMMQuote(midPrice, inventory, volatility);
-            hourlyQuotes.push({
-                marketMaker: marketMaker.name,
-                inventory: marketMaker.inventory,
-                volatility: volatility,
-                ...quote
+            const inventory = randomNormalValue(); // Poids d'inventaire
+            const quote = computeMMQuote(midPrice, inventory, volatility);
+
+            quotes.push({
+                marketMaker: marketMaker.name, inventory: inventory,
+                volatility: volatility, ...quote
             });
         }
 
         // Calcul des meilleurs prix de cotations et étude de l'impact sur le mid
-        const bestBid = Math.max(...hourlyQuotes.map(i => i.bid));
-        const bestAsk = Math.min(...hourlyQuotes.map(i => i.ask));
+        const bestBid = Math.max(...quotes.map(i => i.bid));
+        const bestAsk = Math.min(...quotes.map(i => i.ask));
+        const effectiveMid = math.mean([bestBid, bestAsk])
+        const deviation = (effectiveMid - midPrice) / midPrice * 10000
+
         const market = {
-            bestBid: bestBid,
-            bestAsk: bestAsk,
-            effectiveMid: math.mean([bestBid, bestAsk]),
-            deviation: (math.mean([bestBid, bestAsk]) - midPrice) / midPrice
+            bestBid: bestBid, bestAsk: bestAsk,  effectiveMid: effectiveMid, deviation: deviation
         }
 
-        const summary = { session: i +1, market: market, quotes: hourlyQuotes }
+        const summary = { session: i + 1, market: market, quotes: quotes }
         console.log(summary)
-        mm
         result.push(summary);
     }
 

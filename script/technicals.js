@@ -58,8 +58,13 @@ function computeMMQuote(midPrice, inventory, sigma, gamma = 75, T = 1 / 24) {
     const minimalHalfSpread = math.max(0.000005, deltaBase); // 0.1 bps minimum
     const halfSpread = math.max(deltaBase, minimalHalfSpread);
 
-    // Skew linéaire proportionnel au spread
-    const deltaSkew = (inventory / 100) * halfSpread;
+    // Facteur de croissance exponentiel en fonction de la volatilité
+    const k = 2 + 8 * (1 - sigma);  // Ajustable selon le niveau de volatilité
+
+    // Skew exponentiel asymétrique
+    const expFactor = (math.exp(k * Math.abs(inventory) / 100) - 1) / (math.exp(k) - 1);
+    const skewFactor = expFactor * Math.sign(inventory);
+    const deltaSkew = skewFactor * halfSpread;
 
     // Calcul des prix bid et ask
     const bidPrice = midPrice * (1 - (halfSpread + deltaSkew));
@@ -70,21 +75,16 @@ function computeMMQuote(midPrice, inventory, sigma, gamma = 75, T = 1 / 24) {
     const spread_bps = spreadPct * 10000;
 
     // Calcul du skew en pourcentage
-    const skew_percent = (inventory / 100) * 100; // 100% quand inventaire = ±100
+    const skew_percent = skewFactor * 100;
 
     return {
+        ask: askPrice,
         mid: midPrice,
         bid: bidPrice,
-        ask: askPrice,
-        spread: askPrice - bidPrice,
-        spread_bps: spread_bps,
-        skew: skew_percent,
-        dev: (askPrice + bidPrice) / 2 
+        spread: spread_bps,
+        skew: skew_percent
     };
 }
-
-// === TESTS ===
-console.log("Inventaire neutre:", computeMMQuote(1000, -30, 0.5));
 
 function randomNormalValue(mean = 0, stdDev = 50) {
     let u1 = 0, u2 = 0;
