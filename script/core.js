@@ -1,7 +1,8 @@
 const path = require('path');
 const math = require('mathjs');
+const colors = require('colors');
 
-const { parseCSV, randomName } = require('../script/utils.js');
+const { parseCSV, sleep, randomName, displayMarketDashboard } = require('../script/utils.js');
 const { crossCorrelation, computeMMQuote, randomNormalValue } = require('../script/technicals.js');
 
 function spotFundingCorrelation() {
@@ -31,10 +32,11 @@ function spotFundingCorrelation() {
 }
 
 
-function simulateMMImpact(asset, num_market_makers) {
+async function simulateMMImpact(asset, num_market_makers) {
+    console.clear(); 
 
     // On récupère les données nescessaires
-    const price_array = parseCSV(path.join(__dirname, `../data/spot_hourly_${asset}.csv`)).map(i => parseFloat(i.sma));
+    const price_array = parseCSV(path.join(__dirname, `../data/spot_hourly_${asset}.csv`));
     const vol_array = parseCSV(path.join(__dirname, `../data/volatility_${asset}.csv`)).map(i => parseFloat(i.vol));
 
     const marketMakers = randomName(num_market_makers)
@@ -45,7 +47,9 @@ function simulateMMImpact(asset, num_market_makers) {
     // Parcours des prix et volatilités heure par heure
     for (let i = 0; i < price_array.length; i++) {
 
-        const midPrice = price_array[i];
+        // Récupération des données de la période (séries, prix, volatilité)
+        const time = price_array[i].date;
+        const midPrice = parseFloat(price_array[i].sma);
         const volatility = vol_array[i];
         const quotes = [];
 
@@ -68,12 +72,15 @@ function simulateMMImpact(asset, num_market_makers) {
         const deviation = (effectiveMid - midPrice) / midPrice * 10000
 
         const market = {
-            bestBid: bestBid, bestAsk: bestAsk,  effectiveMid: effectiveMid, deviation: deviation
+            bestBid: bestBid, bestAsk: bestAsk, effectiveMid: effectiveMid, deviation: deviation
         }
 
-        const summary = { session: i + 1, market: market, quotes: quotes }
-        console.log(summary)
+        const summary = { time, market, quotes }
+        
+        displayMarketDashboard(summary)
         result.push(summary);
+
+        await sleep(2)
     }
 
     return result;

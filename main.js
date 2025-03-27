@@ -13,7 +13,6 @@ if (command === 'spot-funding') {
 } if (command === 'MM-quote') {
     const response = simulateMMImpact('BTC', 3);
    // console.log(colors.blue("Correlation entre les prix spots et les funding rates de contrats perpetuels (BTC et ETH)"))
-    console.table(response)
 } else {
 
     console.log('La commande n\'est pas reconnue!');
