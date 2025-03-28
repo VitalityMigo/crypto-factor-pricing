@@ -12,15 +12,15 @@ function spotFundingCorrelation() {
     const lag = 5
 
     // Bitcoin spot et funding correlation
-    const btc_spot = parseCSV(path.join(__dirname, '../data/spot_daily_BTC.csv')).map(i => parseFloat(i.sma));
-    const btc_funding = parseCSV(path.join(__dirname, '../data/funding_BTC.csv')).map(i => parseFloat(i.sma));
-    const btc_cross_correl = crossCorrelation(btc_spot, btc_funding, lag);
+    const btc_spot = parseCSV(path.join(__dirname, '../data/spot_daily_BTC.csv'))
+    const btc_funding = parseCSV(path.join(__dirname, '../data/funding_BTC.csv'))
+    const btc_cross_correl = crossCorrelation(btc_spot.map(i => parseFloat(i.sma)), btc_funding.map(i => parseFloat(i.sma)), lag);
     const btc_max_correl = btc_cross_correl.reduce((max, current) => Math.abs(current.correlation) > Math.abs(max.correlation) ? current : max);
 
     // Ether spot et funding correlation
-    const eth_spot = parseCSV(path.join(__dirname, '../data/spot_daily_ETH.csv')).map(i => parseFloat(i.sma));
-    const eth_funding = parseCSV(path.join(__dirname, '../data/funding_ETH.csv')).map(i => parseFloat(i.sma));
-    const eth_cross_correlation = crossCorrelation(eth_spot, eth_funding, lag);
+    const eth_spot = parseCSV(path.join(__dirname, '../data/spot_daily_ETH.csv'))
+    const eth_funding = parseCSV(path.join(__dirname, '../data/funding_ETH.csv'))
+    const eth_cross_correlation = crossCorrelation(eth_spot.map(i => parseFloat(i.sma)), eth_funding.map(i => parseFloat(i.sma)), lag);
     const eth_max_correl = eth_cross_correlation.reduce((max, current) => Math.abs(current.correlation) > Math.abs(max.correlation) ? current : max);
 
     // Plot des données

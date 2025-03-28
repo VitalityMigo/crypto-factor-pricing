@@ -8,9 +8,9 @@ const command = args[0]
 // Vérifier l'argument et exécuter la fonction correspondante
 if (command === 'spot-funding') {
     const response = spotFundingCorrelation();
-    console.log(colors.blue("Correlation entre les prix spots et les funding rates de contrats perpetuels (BTC et ETH)"))
+    console.log(colors.blue("Correlation entre les prix spots et le taux de financement des contrats perpetuels (BTC et ETH)"))
     console.table(response)
-} if (command === 'MM-quote') {
+} else if (command === 'MM-quote') {
     const response = simulateMMImpact('BTC', 3);
    // console.log(colors.blue("Correlation entre les prix spots et les funding rates de contrats perpetuels (BTC et ETH)"))
 } else {
