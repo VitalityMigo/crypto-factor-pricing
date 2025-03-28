@@ -4,6 +4,7 @@ const colors = require('colors');
 
 const { parseCSV, sleep, randomName, displayMarketDashboard } = require('../script/utils.js');
 const { crossCorrelation, computeMMQuote, randomNormalValue } = require('../script/technicals.js');
+const { plotSpotFunding, plotMMQuotes } = require('./plot.js')
 
 function spotFundingCorrelation() {
 
@@ -22,6 +23,10 @@ function spotFundingCorrelation() {
     const eth_cross_correlation = crossCorrelation(eth_spot, eth_funding, lag);
     const eth_max_correl = eth_cross_correlation.reduce((max, current) => Math.abs(current.correlation) > Math.abs(max.correlation) ? current : max);
 
+    // Plot des données
+    plotSpotFunding('BTC', btc_spot, btc_funding)
+    plotSpotFunding('ETH', eth_spot, eth_funding)
+
     // Formattage du résultat
     const result = [
         { asset: 'BTC', correlation: btc_max_correl.correlation, lag: btc_max_correl.lag },
@@ -33,7 +38,7 @@ function spotFundingCorrelation() {
 
 
 async function simulateMMImpact(asset, num_market_makers) {
-    console.clear(); 
+    console.clear();
 
     // On récupère les données nescessaires
     const price_array = parseCSV(path.join(__dirname, `../data/spot_hourly_${asset}.csv`));
@@ -76,13 +81,13 @@ async function simulateMMImpact(asset, num_market_makers) {
         }
 
         const summary = { time, market, quotes }
-        
+
         displayMarketDashboard(summary)
         result.push(summary);
 
         await sleep(2)
     }
-
+    MM
     return result;
 }
 

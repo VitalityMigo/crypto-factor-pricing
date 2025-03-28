@@ -60,7 +60,7 @@ function displayMarketDashboard(data) {
     const quotesTable = new Table({
         head: [
             colors.bold(colors.blue("Market Maker")),
-            colors.bold(colors.blue("Inventory")),
+            colors.bold(colors.blue("Inventaire")),
             colors.bold(colors.blue("Bid")),
             colors.bold(colors.blue("Mid")),
             colors.bold(colors.blue("Ask")),
@@ -101,7 +101,7 @@ function displayMarketDashboard(data) {
         colors.red(data.market.bestAsk.toFixed(2))
     ]);
 
-    console.log(colors.blue("\nMarché agrégé:"));
+    console.log(colors.blue("\nMarchés agrégés:"));
     console.log(aggTable.toString());
 
     console.log("∟ Déviation: " + (data.market.deviation > 0 
@@ -109,6 +109,7 @@ function displayMarketDashboard(data) {
         : colors.red(data.market.deviation.toFixed(2))) + " bps");
     console.log("\n");
 }
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms * 1000));
 }
